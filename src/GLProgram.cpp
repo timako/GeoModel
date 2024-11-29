@@ -133,8 +133,25 @@ void GLProgram::DisplayingVec(const vector<glm::vec3>& Vector, const vector<glm:
 void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curves,
     const vector<tinynurbs::RationalCurve<float>>& trajectory_curves,
     const vector<vector<tinynurbs::RationalCurve<float>>>& profile_curves,
-    const vector<vector<vector<glm::vec3>>>& frames,
-    const vector<tinynurbs::RationalSurface<float>>& surfaces) {
+    const vector<vector<vector<glm::vec3>>>& frames) {
+    vector<tinynurbs::RationalSurface<float>> surfaces;
+ 
+    uint degree_contour_curves = contour_curves[0].degree;
+    uint degree_trajectory_curves = trajectory_curves[0].degree;
+    std::vector<float> knots_contour_curves = contour_curves[0].knots;
+    std::vector<float> knots_trajectory_curves = trajectory_curves[0].knots;
+
+    // calcutale surface array2 control points
+    std::vector<glm::vec<3, float>> control_points; 
+    /*
+    	template <typename T> glm::vec<3, T> curvePoint(const Curve<T>& crv, T u) {
+		return internal::curvePoint(crv.degree, crv.knots, crv.control_points, u);
+	}
+     */
+
+    // glm::vec3 tmp = tinynurbs::curvePoint(contour_curves[0], (float)0.5);
+
+
 
     // lighting
     lightPos = glm::vec3(10.f, 4.0f, 10.0f);
@@ -172,7 +189,7 @@ void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curv
     glViewport(0, 0, this->windowWidth, this->windowHeight);
     glEnable(GL_DEPTH_TEST);
 
-    this->surfaceRender.resize(surfaces.size());
+    // this->surfaceRender.resize(surfaces.size());
 
     this->meshRender.resize(surfaceRender.size());
 
@@ -183,74 +200,74 @@ void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curv
     this->UsurfaceDerivateRender.resize(surfaceRender.size());
     this->VsurfaceDerivateRender.resize(surfaceRender.size());
 
-    for (int k = 0; k < this->surfaceRender.size(); k++)
-    {
-        /*Original method */
-        {
-        float u, v, delta;
-        u = 0;
-        v = 0;
-        int numX = 40;
-        int numY = 40;
-        vector<vector<glm::vec3>> Vertices;
-        vector<vector<glm::vec3>> Normal;
-        vector<vector<glm::vec3>> OffsetVertex;
+    // for (int k = 0; k < this->surfaceRender.size(); k++)
+    // {
+    //     /*Original method */
+    //     {
+    //     float u, v, delta;
+    //     u = 0;
+    //     v = 0;
+    //     int numX = 40;
+    //     int numY = 40;
+    //     vector<vector<glm::vec3>> Vertices;
+    //     vector<vector<glm::vec3>> Normal;
+    //     vector<vector<glm::vec3>> OffsetVertex;
 
-        Normal.resize(numX);
-        Vertices.resize(numX);
-        OffsetVertex.resize(numX);
-        delta = 1.0 / (numX - 1);
-        for (int x = 0; x < numX; x++) {
-            v = 0;
-            Vertices[x].resize(numY);
-            OffsetVertex[x].resize(numY);
-            Normal[x].resize(numY);
-            for (int y = 0; y < numY; y++) {
-                // add vertex
-                glm::vec3 tmp = tinynurbs::surfacePoint(surfaces[k], u, v);
-                glm::vec3 tmp1 = tinynurbs::surfaceNormal(surfaces[k], u, v);
+    //     Normal.resize(numX);
+    //     Vertices.resize(numX);
+    //     OffsetVertex.resize(numX);
+    //     delta = 1.0 / (numX - 1);
+    //     for (int x = 0; x < numX; x++) {
+    //         v = 0;
+    //         Vertices[x].resize(numY);
+    //         OffsetVertex[x].resize(numY);
+    //         Normal[x].resize(numY);
+    //         for (int y = 0; y < numY; y++) {
+    //             // add vertex
+    //             glm::vec3 tmp = tinynurbs::surfacePoint(surfaces[k], u, v);
+    //             glm::vec3 tmp1 = tinynurbs::surfaceNormal(surfaces[k], u, v);
 
-                double length = sqrt(pow(tmp1.x, 2) + pow(tmp1.y, 2) + pow(tmp1.z, 2)); 
+    //             double length = sqrt(pow(tmp1.x, 2) + pow(tmp1.y, 2) + pow(tmp1.z, 2)); 
 
-                tmp1.x = tmp1.x / length;
-                tmp1.y = tmp1.y / length;
-                tmp1.z = tmp1.z / length;
+    //             tmp1.x = tmp1.x / length;
+    //             tmp1.y = tmp1.y / length;
+    //             tmp1.z = tmp1.z / length;
             
-                glm::vec3 tmp2; 
+    //             glm::vec3 tmp2; 
 
-                double len = 0.2; 
-                tmp2.x = tmp.x - tmp1.x * len;
-                tmp2.y = tmp.y - tmp1.y * len;
-                tmp2.z = tmp.z - tmp1.z * len;
+    //             double len = 0.2; 
+    //             tmp2.x = tmp.x - tmp1.x * len;
+    //             tmp2.y = tmp.y - tmp1.y * len;
+    //             tmp2.z = tmp.z - tmp1.z * len;
 
-                Vertices[x][y] = tmp;
-                OffsetVertex[x][y] = tmp2;
-                Normal[x][y] = tmp1;
-                v += delta;
-            }
-            u += delta;
-        }
-        this->surfaceRender[k].Initial(lightvertexShaderPath, fragmentShaderPath, Vertices, Normal);
+    //             Vertices[x][y] = tmp;
+    //             OffsetVertex[x][y] = tmp2;
+    //             Normal[x][y] = tmp1;
+    //             v += delta;
+    //         }
+    //         u += delta;
+    //     }
+    //     this->surfaceRender[k].Initial(lightvertexShaderPath, fragmentShaderPath, Vertices, Normal);
 
-        this->meshRender[k].Initial(vertexShaderPath, whiteFragmentShaderPath, Vertices);
+    //     this->meshRender[k].Initial(vertexShaderPath, whiteFragmentShaderPath, Vertices);
  
-        vector<vector<glm::vec3>> MeshVertex;
+    //     vector<vector<glm::vec3>> MeshVertex;
 
-        MeshVertex.resize(surfaces[k].control_points.rows());
+    //     MeshVertex.resize(surfaces[k].control_points.rows());
 
-        for (int i = 0; i < surfaces[k].control_points.rows(); i++)
-        {
-            MeshVertex[i].resize(surfaces[k].control_points.cols());
-            for (int j = 0; j < surfaces[k].control_points.cols(); j++) {
-                MeshVertex[i][j] = surfaces[k].control_points[surfaces[k].control_points.cols() * i + j];
+    //     for (int i = 0; i < surfaces[k].control_points.rows(); i++)
+    //     {
+    //         MeshVertex[i].resize(surfaces[k].control_points.cols());
+    //         for (int j = 0; j < surfaces[k].control_points.cols(); j++) {
+    //             MeshVertex[i][j] = surfaces[k].control_points[surfaces[k].control_points.cols() * i + j];
 
-            }
+    //         }
 
-        }
-        this->surfaceControlRender[k].Initial(vertexShaderPath, whiteFragmentShaderPath, MeshVertex);
-        }
+    //     }
+    //     this->surfaceControlRender[k].Initial(vertexShaderPath, whiteFragmentShaderPath, MeshVertex);
+    //     }
 
-    }
+    // }
 
 
     this->contourCurveDisplayer.resize(contour_curves.size());

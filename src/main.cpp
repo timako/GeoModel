@@ -51,8 +51,16 @@ int main() {
             {1, 1, 1, 1, 1, 1, 1, 1, 1, }),
     };
     std::vector<float> v_bar = { 0, 0.116865, 0.206807, 0.311239, 0.412281, 0.487043, 0.570073, 0.630555, 0.704791, 0.8212, 1, };
+    
     std::vector<std::vector<glm::vec3>> frames(v_bar.size());
-    std::fill(frames.begin(), frames.end(), std::vector<glm::vec3>({glm::fvec3(1,0,0), glm::fvec3(0,1,0), glm::fvec3(0,0,1)}));
+    for (int i = 0; i < v_bar.size(); i++) {
+        frames[i].resize(3);
+        frames[i] = tinynurbs::curveTNBFrame<float>(trace, v_bar[i]);
+    }
+
+    
+
+    // std::fill(frames.begin(), frames.end(), std::vector<glm::vec3>({glm::fvec3(1,0,0), glm::fvec3(0,1,0), glm::fvec3(0,0,1)}));
     tinynurbs::RationalSurface<float> sweep_surf(
         2, 2, 
         { 0, 0, 0, 0.15, 0.3, 0.4, 0.6, 0.7, 0.85, 1, 1, 1, },
@@ -162,7 +170,7 @@ int main() {
         } 
         },
         { 9,11, 1 });
-    program.init({ contour }, { trace }, { profile_curves }, { frames }, { sweep_surf });
+    program.init({ contour }, { trace }, { profile_curves }, { frames });
     program.setClearColor(0.05f, 0.18f, 0.25f, 1.0f);
     program.run({ contour }, { trace }, { profile_curves }, { frames }, {v_bar}, { sweep_surf });
     program.cleanup();

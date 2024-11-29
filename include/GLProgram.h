@@ -44,18 +44,18 @@ class GLProgram {
 
 
 
-        vector<CurveDisplay> contourCurveDisplayer;  //ÇúÏßµÄrender
+        vector<CurveDisplay> contourCurveDisplayer;  //ï¿½ï¿½ï¿½ßµï¿½render
         vector<CurveDisplay> trajectoryCurveDisplayer;
         vector<vector<CurveDisplay>> profileCurveDisplayer;
         vector<vector<vector<NormalRender>>> frameDisplayer;
 
         
-        vector<SurfaceRender> surfaceRender; //ÇúÃæµÄrender
-        vector<MeshRender> meshRender; // ÇúÃæµÄµÈ²ÎÊýÏßÍø¸ñ
-        vector<MeshRender> surfaceControlRender;//ÇúÃæµÄ¿ØÖÆµãÍø¸ñ
-        vector<NormalRender> normalRender;  //ÇúÃæµÄ·¨Ïò
-        vector<NormalRender> UsurfaceDerivateRender; //ÇúÃæÄ³Ò»µãµ¼ÊýU·½ÏòµÄÑÓÉìÏß
-        vector<NormalRender> VsurfaceDerivateRender; //ÇúÃæÄ³Ò»µãµ¼ÊýV·½ÏòµÄÑÓÉìÏß
+        vector<SurfaceRender> surfaceRender; //ï¿½ï¿½ï¿½ï¿½ï¿½render
+        vector<MeshRender> meshRender; // ï¿½ï¿½ï¿½ï¿½ÄµÈ²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        vector<MeshRender> surfaceControlRender;//ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½Æµï¿½ï¿½ï¿½ï¿½ï¿½
+        vector<NormalRender> normalRender;  //ï¿½ï¿½ï¿½ï¿½Ä·ï¿½ï¿½ï¿½
+        vector<NormalRender> UsurfaceDerivateRender; //ï¿½ï¿½ï¿½ï¿½Ä³Ò»ï¿½ãµ¼ï¿½ï¿½Uï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        vector<NormalRender> VsurfaceDerivateRender; //ï¿½ï¿½ï¿½ï¿½Ä³Ò»ï¿½ãµ¼ï¿½ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
         void DisplayingCurve(const tinynurbs::RationalCurve<float>& curve, CurveDisplay& displayer,
             bool show_curves, bool show_control_points, bool show_derivate, float curves_derivate_u);
@@ -67,7 +67,7 @@ class GLProgram {
     public:
 
         // input
-        bool enableControl = true; //ÏÞÖÆÊó±êÒÆ¶¯
+        bool enableControl = true; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½
 
         static int windowWidth, windowHeight;
         static Camera camera;
@@ -83,8 +83,7 @@ class GLProgram {
         void init(const vector<tinynurbs::RationalCurve<float>>& contour_curves,
             const vector<tinynurbs::RationalCurve<float>>& trajectory_curves,
             const vector<vector<tinynurbs::RationalCurve<float>>>& profile_curves,
-            const vector<vector<vector<glm::vec3>>>& frames,
-            const vector<tinynurbs::RationalSurface<float>>& surfaces);
+            const vector<vector<vector<glm::vec3>>>& frames);
         void run(const vector<tinynurbs::RationalCurve<float>>& contour_curves,
             const vector<tinynurbs::RationalCurve<float>>& trajectory_curves,
             const vector<vector<tinynurbs::RationalCurve<float>>>& profile_curves,

@@ -318,6 +318,105 @@ namespace tinynurbs {
 		return du;
 	}
 
+
+	/**
+	 * Evaluate the normal of a B-spline curve
+	 * @param[in] crv Curve object
+	 * @return Unit normal of the curve at u.
+	 */
+	template <typename T> glm::vec<3, T> curveNormal(const Curve<T>& crv, T u){
+		glm::vec<3, T> du = curveTangent(crv, u);
+		// calculate the second derivative of the curve 
+		std::vector<glm::vec<3, T>> ders = curveDerivatives(crv, 2, u);
+		glm::vec<3, T> ddu = ders[2];
+		// calculate the normal vector
+		glm::vec<3, T> normal = ddu - (ddu * du) * du; 
+		T normal_len = glm::length(normal);
+		if(!util::close(normal_len, T(0))) {
+			normal /= normal_len;
+		}
+		return normal;
+	}
+
+	/**
+	 * Evaluate the normal of a rational B-spline curve
+	 * @param[in] crv Curve object
+	 * @return Unit normal of the curve at u.
+	 */
+	template <typename T> glm::vec<3, T> curveNormal(const RationalCurve<T>& crv, T u){
+		glm::vec<3, T> du = curveTangent(crv, u);
+		// calculate the second derivative of the curve 
+		std::vector<glm::vec<3, T>> ders = curveDerivatives(crv, 2, u);
+		glm::vec<3, T> ddu = ders[2];
+		// calculate the normal vector
+		glm::vec<3, T> normal = ddu - (ddu * du) * du; 
+		T normal_len = glm::length(normal);
+		if(!util::close(normal_len, T(0))) {
+			normal /= normal_len;
+		}
+		return normal;
+	}
+
+	/**
+	 * Evaluate the bi-normal of a B-spline curve
+	 * @param[in] crv Curve object
+	 * @return Unit normal of the curve at u.
+	 */
+	template <typename T> glm::vec<3, T> curveBiNormal(const Curve<T>& crv, T u){
+		glm::vec<3, T> du = curveTangent(crv, u);
+		glm::vec<3, T> normal = curveNormal(crv, u);
+		// calculate the bi-normal vector
+		glm::vec<3, T> biNormal = glm::cross(du, normal);
+		T biNormal_len = glm::length(biNormal);
+		if(!util::close(biNormal_len, T(0))) {
+			biNormal /= biNormal_len;
+		}
+		return biNormal;
+	}
+
+	/**
+	 * Evaluate the bi-normal of a rational B-spline curve
+	 * @param[in] crv Curve object
+	 * @return Unit normal of the curve at u.
+	 */
+	template <typename T> glm::vec<3, T> curveBiNormal(const RationalCurve<T>& crv, T u){
+		glm::vec<3, T> du = curveTangent(crv, u);
+		glm::vec<3, T> normal = curveNormal(crv, u);
+		// calculate the bi-normal vector
+		glm::vec<3, T> biNormal = glm::cross(du, normal);
+		T biNormal_len = glm::length(biNormal);
+		if(!util::close(biNormal_len, T(0))) {
+			biNormal /= biNormal_len;
+		}
+		return biNormal;
+	}
+
+	/**  
+	* Evaluate the TNB frame of a B-spline curve
+	* @param[in] crv Curve object
+	* @return TNB frame of the curve at u.
+	*/
+	template <typename T> std::vector<glm::vec<3, T>> curveTNBFrame(const Curve<float>& crv, float u){
+		std::vector<glm::vec<3, T>> frame;
+		frame.push_back(curveTangent(crv, u));
+		frame.push_back(curveNormal(crv, u));
+		frame.push_back(curveBiNormal(crv, u));
+		return frame;
+	}
+
+	/**  
+	* Evaluate the TNB frame of a rational B-spline curve
+	* @param[in] crv Curve object
+	* @return TNB frame of the curve at u.
+	*/
+	template <typename T> std::vector<glm::vec<3, T>> curveTNBFrame(const RationalCurve<float>& crv, float u){
+		std::vector<glm::vec<3, T>> frame;
+		frame.push_back(curveTangent(crv, u));
+		frame.push_back(curveNormal(crv, u));
+		frame.push_back(curveBiNormal(crv, u));
+		return frame;
+	}
+
 	/**
 	 * Evaluate point on a nonrational NURBS surface
 	 * @param[in] srf Surface object
