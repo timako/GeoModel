@@ -399,7 +399,9 @@ namespace tinynurbs {
 	template <typename T> std::vector<glm::vec<3, T>> curveTNBFrame(const Curve<float>& crv, float u){
 		std::vector<glm::vec<3, T>> frame;
 		frame.push_back(curveTangent(crv, u));
-		frame.push_back(curveNormal(crv, u));
+		glm::vec<3, T> normal = - glm::cross(curveTangent(crv, u), curveBiNormal(crv, u)); 
+		frame.push_back(normal);
+		// frame.push_back(curveNormal(crv, u));
 		frame.push_back(curveBiNormal(crv, u));
 		return frame;
 	}
@@ -412,7 +414,9 @@ namespace tinynurbs {
 	template <typename T> std::vector<glm::vec<3, T>> curveTNBFrame(const RationalCurve<float>& crv, float u){
 		std::vector<glm::vec<3, T>> frame;
 		frame.push_back(curveTangent(crv, u));
-		frame.push_back(curveNormal(crv, u));
+		glm::vec<3, T> normal = - glm::cross(curveTangent(crv, u), curveBiNormal(crv, u)); 
+		frame.push_back(normal);
+		// frame.push_back(curveNormal(crv, u));
 		frame.push_back(curveBiNormal(crv, u));
 		return frame;
 	}

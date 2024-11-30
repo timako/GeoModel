@@ -133,134 +133,18 @@ void GLProgram::DisplayingVec(const vector<glm::vec3>& Vector, const vector<glm:
 void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curves,
     const vector<tinynurbs::RationalCurve<float>>& trajectory_curves,
     const vector<vector<tinynurbs::RationalCurve<float>>>& profile_curves,
-    const vector<vector<vector<glm::vec3>>>& frames) {
-    vector<tinynurbs::RationalSurface<float>> surfaces; 
-    tinynurbs::RationalSurface<float> sweep_surf(
-        2, 2, 
-        { 0, 0, 0, 0.15, 0.3, 0.4, 0.6, 0.7, 0.85, 1, 1, 1, },
-        { 0, 0, 0, 0.161836, 0.259023, 0.36176, 0.449662, 0.528558, 0.600314, 0.667673, 0.762996, 1, 1, 1, },
-        // row, col, data of array2
-        { 9,11, 
-        {
-        glm::fvec3(2.28842e-08, -0.5, 0.5), 
-        glm::fvec3(0.48417, -0.249791, 0.780435), 
-        glm::fvec3(1.35815, 0.153899, 0.794649), 
-        glm::fvec3(1.74586, 0.27785, 0.630892), 
-        glm::fvec3(2.06772, 0.317353, 0.462628), 
-        glm::fvec3(2.47702, 0.240809, 0.284369), 
-        glm::fvec3(2.73502, 0.131627, 0.207552), 
-        glm::fvec3(3.17556, -0.0852526, 0.204113), 
-        glm::fvec3(3.67244, -0.366419, 0.393393), 
-        glm::fvec3(4.52056, -1.00277, 0.993507), 
-        glm::fvec3(5, -1.5, 1.5),
-        glm::fvec3(2.58263e-08, -0.5, 1), 
-        glm::fvec3(0.512206, -0.210369, 1.29785), 
-        glm::fvec3(1.58335, 0.370408, 1.20973), 
-        glm::fvec3(1.95331, 0.744145, 0.786392), 
-        glm::fvec3(2.21764, 0.78156, 0.288975), 
-        glm::fvec3(2.67786, 0.548481, -0.0795535), 
-        glm::fvec3(2.90828, 0.191067, -0.269885), 
-        glm::fvec3(3.45405, -0.166219, -0.213422), 
-        glm::fvec3(4.11539, -0.348706, 0.133832), 
-        glm::fvec3(5.00754, -0.965124, 0.880974), 
-        glm::fvec3(5.49053, -1.43151, 1.43151),
-        glm::fvec3(2.64208e-08, 1, 1), 
-        glm::fvec3(0.563469, 1.3066, 1.19878), 
-        glm::fvec3(1.60121, 1.74901, 0.490785), 
-        glm::fvec3(1.82629, 1.29699, -0.730571), 
-        glm::fvec3(2.21758, 0.236113, -1.17448), 		
-        glm::fvec3(2.64893, -0.63112, -1.09388), 		
-        glm::fvec3(2.87378, -1.32941, -0.478939), 		
-        glm::fvec3(3.35298, -1.65212, 0.0142322), 		
-        glm::fvec3(4.01114, -1.84473, -0.0781053), 		
-        glm::fvec3(5.03973, -2.41323, 0.49843), 		
-        glm::fvec3(5.62048, -2.84555, 0.948186),
-        glm::fvec3(2.46555e-08, 1, 0.7), 		
-        glm::fvec3(0.546648, 1.28295, 0.88833), 		
-        glm::fvec3(1.46608, 1.6191, 0.241734), 		
-        glm::fvec3(1.70182, 1.01722, -0.823871), 		
-        glm::fvec3(2.12764, -0.0424113, -1.07029), 		
-        glm::fvec3(2.52842, -0.815723, -0.875531), 		
-        glm::fvec3(2.76982, -1.36507, -0.192476), 		
-        glm::fvec3(3.18589, -1.60354, 0.264753), 		
-        glm::fvec3(3.74537, -1.85536, 0.0776315), 		
-        glm::fvec3(4.74755, -2.43582, 0.565949), 		
-        glm::fvec3(5.32616, -2.88664, 0.989278),
-        glm::fvec3(2.30823e-08, 9.84445e-09, 0.5), 		
-        glm::fvec3(0.501258, 0.255866, 0.747411), 		
-        glm::fvec3(1.3641, 0.613433, 0.555), 		
-        glm::fvec3(1.70352, 0.462133, 0.125238), 		
-        glm::fvec3(2.06771, 0.135537, -0.0251922), 		
-        glm::fvec3(2.46737, -0.152392, -0.0537412), 		
-        glm::fvec3(2.72352, -0.375199, 0.137867), 		
-        glm::fvec3(3.14187, -0.580552, 0.279998), 		
-        glm::fvec3(3.63769, -0.865095, 0.322747), 		
-        glm::fvec3(4.5313, -1.48547, 0.865992), 		
-        glm::fvec3(5.04332, -1.97135, 1.33889),
-        glm::fvec3(2.23018e-08, 1, 0.3), 		
-        glm::fvec3(0.524219, 1.25141, 0.474395), 		
-        glm::fvec3(1.28592, 1.4459, -0.090334), 		
-        glm::fvec3(1.53586, 0.64418, -0.948271), 		
-        glm::fvec3(2.0077, -0.413777, -0.931371), 		
-        glm::fvec3(2.36774, -1.06186, -0.584393), 		
-        glm::fvec3(2.63122, -1.41263, 0.189473), 		
-        glm::fvec3(2.96309, -1.53877, 0.598782), 		
-        glm::fvec3(3.39101, -1.86953, 0.285281), 		
-        glm::fvec3(4.35797, -2.46593, 0.655976), 		
-        glm::fvec3(4.93373, -2.94144, 1.04407),
-        glm::fvec3(2.05366e-08, 1, -3.24963e-09), 		
-        glm::fvec3(0.507398, 1.22776, 0.163945), 		
-        glm::fvec3(1.1508, 1.31599, -0.339385), 		
-        glm::fvec3(1.41139, 0.364403, -1.04157), 		
-        glm::fvec3(1.91776, -0.692301, -0.82718), 		
-        glm::fvec3(2.24724, -1.24647, -0.366039), 		
-        glm::fvec3(2.52726, -1.44829, 0.475936), 		
-        glm::fvec3(2.796, -1.49019, 0.849303), 		
-        glm::fvec3(3.12523, -1.88016, 0.441017), 		
-        glm::fvec3(4.06578, -2.48852, 0.723495), 		
-        glm::fvec3(4.63942, -2.98253, 1.08516),
-        glm::fvec3(1.99421e-08, -0.5, 7.9355e-09), 		
-        glm::fvec3(0.456135, -0.289213, 0.263017), 		
-        glm::fvec3(1.13295, -0.0626108, 0.379564), 		
-        glm::fvec3(1.53841, -0.188444, 0.475392), 		
-        glm::fvec3(1.91781, -0.146854, 0.63628), 		
-        glm::fvec3(2.27617, -0.0668641, 0.648292), 		
-        glm::fvec3(2.56176, 0.0721867, 0.684989), 		
-        glm::fvec3(2.89707, -0.00428574, 0.621649), 		
-        glm::fvec3(3.22948, -0.384132, 0.652954), 		
-        glm::fvec3(4.03359, -1.04041, 1.10604), 		
-        glm::fvec3(4.50947, -1.56849, 1.56849),
-        glm::fvec3(2.28842e-08, -0.5, 0.5), 		
-        glm::fvec3(0.48417, -0.249791, 0.780435), 		
-        glm::fvec3(1.35815, 0.153899, 0.794649), 		
-        glm::fvec3(1.74586, 0.27785, 0.630892), 		
-        glm::fvec3(2.06772, 0.317353, 0.462628), 		
-        glm::fvec3(2.47702, 0.240809, 0.284369), 		
-        glm::fvec3(2.73502, 0.131627, 0.207552), 		
-        glm::fvec3(3.17556, -0.0852526, 0.204113), 		
-        glm::fvec3(3.67244, -0.366419, 0.393393), 		
-        glm::fvec3(4.52056, -1.00277, 0.993507), 		
-        glm::fvec3(5, -1.5, 1.5),
-        } 
-        },
-        { 9,11, 1 });
+    const vector<vector<vector<glm::vec3>>>& frames
+    ) {
 
-        surfaces.push_back(sweep_surf);
- 
-
-    /*
-    	template <typename T> glm::vec<3, T> curvePoint(const Curve<T>& crv, T u) {
-		return internal::curvePoint(crv.degree, crv.knots, crv.control_points, u);
-	}
-     */
-
-    // glm::vec3 tmp = tinynurbs::curvePoint(contour_curves[0], (float)0.5);
-
-
-
+    vector<tinynurbs::RationalSurface<float>> surfaces;   
+    tinynurbs::RationalSurface<float>sweep_surf
+    (2,2,{0,0,0,0.15,0.3,0.4,0.6,0.7,0.85,1,1,1,},{0,0,0,0.161836,0.259023,0.36176,0.449662,0.528558,0.600314,0.667673,0.762996,1,1,1,}, 
+    //row,col,data of array2
+    {9,11,{glm::fvec3(2.28842e-08,-0.5,0.5),glm::fvec3(0.48417,-0.249791,0.780435),glm::fvec3(1.35815,0.153899,0.794649),glm::fvec3(1.74586,0.27785,0.630892),glm::fvec3(2.06772,0.317353,0.462628),glm::fvec3(2.47702,0.240809,0.284369),glm::fvec3(2.73502,0.131627,0.207552),glm::fvec3(3.17556,-0.0852526,0.204113),glm::fvec3(3.67244,-0.366419,0.393393),glm::fvec3(4.52056,-1.00277,0.993507),glm::fvec3(5,-1.5,1.5),glm::fvec3(2.58263e-08,-0.5,1),glm::fvec3(0.512206,-0.210369,1.29785),glm::fvec3(1.58335,0.370408,1.20973),glm::fvec3(1.95331,0.744145,0.786392),glm::fvec3(2.21764,0.78156,0.288975),glm::fvec3(2.67786,0.548481,-0.0795535),glm::fvec3(2.90828,0.191067,-0.269885),glm::fvec3(3.45405,-0.166219,-0.213422),glm::fvec3(4.11539,-0.348706,0.133832),glm::fvec3(5.00754,-0.965124,0.880974),glm::fvec3(5.49053,-1.43151,1.43151),glm::fvec3(2.64208e-08,1,1),glm::fvec3(0.563469,1.3066,1.19878),glm::fvec3(1.60121,1.74901,0.490785),glm::fvec3(1.82629,1.29699,-0.730571),glm::fvec3(2.21758,0.236113,-1.17448),glm::fvec3(2.64893,-0.63112,-1.09388),glm::fvec3(2.87378,-1.32941,-0.478939),glm::fvec3(3.35298,-1.65212,0.0142322),glm::fvec3(4.01114,-1.84473,-0.0781053),glm::fvec3(5.03973,-2.41323,0.49843),glm::fvec3(5.62048,-2.84555,0.948186),glm::fvec3(2.46555e-08,1,0.7),glm::fvec3(0.546648,1.28295,0.88833),glm::fvec3(1.46608,1.6191,0.241734),glm::fvec3(1.70182,1.01722,-0.823871),glm::fvec3(2.12764,-0.0424113,-1.07029),glm::fvec3(2.52842,-0.815723,-0.875531),glm::fvec3(2.76982,-1.36507,-0.192476),glm::fvec3(3.18589,-1.60354,0.264753),glm::fvec3(3.74537,-1.85536,0.0776315),glm::fvec3(4.74755,-2.43582,0.565949),glm::fvec3(5.32616,-2.88664,0.989278),glm::fvec3(2.30823e-08,9.84445e-09,0.5),glm::fvec3(0.501258,0.255866,0.747411),glm::fvec3(1.3641,0.613433,0.555),glm::fvec3(1.70352,0.462133,0.125238),glm::fvec3(2.06771,0.135537,-0.0251922),glm::fvec3(2.46737,-0.152392,-0.0537412),glm::fvec3(2.72352,-0.375199,0.137867),glm::fvec3(3.14187,-0.580552,0.279998),glm::fvec3(3.63769,-0.865095,0.322747),glm::fvec3(4.5313,-1.48547,0.865992),glm::fvec3(5.04332,-1.97135,1.33889),glm::fvec3(2.23018e-08,1,0.3),glm::fvec3(0.524219,1.25141,0.474395),glm::fvec3(1.28592,1.4459,-0.090334),glm::fvec3(1.53586,0.64418,-0.948271),glm::fvec3(2.0077,-0.413777,-0.931371),glm::fvec3(2.36774,-1.06186,-0.584393),glm::fvec3(2.63122,-1.41263,0.189473),glm::fvec3(2.96309,-1.53877,0.598782),glm::fvec3(3.39101,-1.86953,0.285281),glm::fvec3(4.35797,-2.46593,0.655976),glm::fvec3(4.93373,-2.94144,1.04407),glm::fvec3(2.05366e-08,1,-3.24963e-09),glm::fvec3(0.507398,1.22776,0.163945),glm::fvec3(1.1508,1.31599,-0.339385),glm::fvec3(1.41139,0.364403,-1.04157),glm::fvec3(1.91776,-0.692301,-0.82718),glm::fvec3(2.24724,-1.24647,-0.366039),glm::fvec3(2.52726,-1.44829,0.475936),glm::fvec3(2.796,-1.49019,0.849303),glm::fvec3(3.12523,-1.88016,0.441017),glm::fvec3(4.06578,-2.48852,0.723495),glm::fvec3(4.63942,-2.98253,1.08516),glm::fvec3(1.99421e-08,-0.5,7.9355e-09),glm::fvec3(0.456135,-0.289213,0.263017),glm::fvec3(1.13295,-0.0626108,0.379564),glm::fvec3(1.53841,-0.188444,0.475392),glm::fvec3(1.91781,-0.146854,0.63628),glm::fvec3(2.27617,-0.0668641,0.648292),glm::fvec3(2.56176,0.0721867,0.684989),glm::fvec3(2.89707,-0.00428574,0.621649),glm::fvec3(3.22948,-0.384132,0.652954),glm::fvec3(4.03359,-1.04041,1.10604),glm::fvec3(4.50947,-1.56849,1.56849),glm::fvec3(2.28842e-08,-0.5,0.5),glm::fvec3(0.48417,-0.249791,0.780435),glm::fvec3(1.35815,0.153899,0.794649),glm::fvec3(1.74586,0.27785,0.630892),glm::fvec3(2.06772,0.317353,0.462628),glm::fvec3(2.47702,0.240809,0.284369),glm::fvec3(2.73502,0.131627,0.207552),glm::fvec3(3.17556,-0.0852526,0.204113),glm::fvec3(3.67244,-0.366419,0.393393),glm::fvec3(4.52056,-1.00277,0.993507),glm::fvec3(5,-1.5,1.5),}},{9,11,1});
+    surfaces.push_back(sweep_surf);
     // lighting
     lightPos = glm::vec3(10.f, 4.0f, 10.0f);
-
+    
     // initialize window system
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -294,7 +178,7 @@ void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curv
     glViewport(0, 0, this->windowWidth, this->windowHeight);
     glEnable(GL_DEPTH_TEST);
 
-    // this->surfaceRender.resize(surfaces.size());
+    this->surfaceRender.resize(surfaces.size());
 
     this->meshRender.resize(surfaceRender.size());
 
@@ -313,87 +197,101 @@ void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curv
     uint num_controlpoints_trajectory_curves = trajectory_curves[0].control_points.size();
 
 
-    tinynurbs::array2<glm::vec<3, float>> control_points; 
-    
-    if(1){
-        for (int k = 0; k < this->surfaceRender.size(); k++)
+    for (int k = 0; k < this->surfaceRender.size(); k++)
+    {
+        /*Original method */
         {
-            /*Original method */
-            
-            float u, v, delta;
-            u = 0;
+        float u, v, delta;
+        u = 0;
+        v = 0;
+        int numX = 40;
+        int numY = 40;
+        vector<vector<glm::vec3>> Vertices;
+        vector<vector<glm::vec3>> Normal;
+        vector<vector<glm::vec3>> OffsetVertex;
+
+        Normal.resize(numX);
+        Vertices.resize(numX);
+        OffsetVertex.resize(numX);
+        delta = 1.0 / (numX - 1);
+        for (int x = 0; x < numX; x++) {
             v = 0;
-            int numX = 40;
-            int numY = 40;
-            vector<vector<glm::vec3>> Vertices;
-            vector<vector<glm::vec3>> Normal;
-            vector<vector<glm::vec3>> OffsetVertex;
+            Vertices[x].resize(numY);
+            OffsetVertex[x].resize(numY);
+            Normal[x].resize(numY);
+            for (int y = 0; y < numY; y++) {
+                // add vertex
+                // glm::vec3 tmp = tinynurbs::surfacePoint(surfaces[k], u, v);
 
-            Normal.resize(numX);
-            Vertices.resize(numX);
-            OffsetVertex.resize(numX);
-            delta = 1.0 / (numX - 1);
-            for (int x = 0; x < numX; x++) {
-                v = 0;
-                Vertices[x].resize(numY);
-                OffsetVertex[x].resize(numY);
-                Normal[x].resize(numY);
-                for (int y = 0; y < numY; y++) {
-                    // add vertex
-                    glm::vec3 tmp = tinynurbs::surfacePoint(surfaces[k], u, v);
-                    glm::vec3 tmp_contour_curve = tinynurbs::curvePoint(contour_curves[k], u);
-                    glm::vec3 tmp_trajectory_curve = tinynurbs::curvePoint(trajectory_curves[k], v);
-                    std::vector<glm::vec3> frame_trajectory_curve = tinynurbs::curveTNBFrame<float>(trajectory_curves[k], v);
-                    glm::mat3x3 rot = glm::mat3x3(frame_trajectory_curve[0], frame_trajectory_curve[1], frame_trajectory_curve[2]);
-                    glm::mat3x3 scale = glm::mat3x3(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-                    glm::mat3x3 rot_scale = rot * scale;
-                    // glm::vec3 tmp = rot_scale * (tmp_contour_curve - tmp_trajectory_curve) + tmp_trajectory_curve;
-                    // glm::vec3 tmp = tmp_contour_curve + tmp_trajectory_curve; 
-                    
+                glm::vec3 tmp_contour_curve = tinynurbs::curvePoint(contour_curves[k], u);
+                glm::vec3 tmp_trajectory_curve = tinynurbs::curvePoint(trajectory_curves[k], v);
+                std::vector<glm::vec3> frame_trajectory_curve = tinynurbs::curveTNBFrame<float>(trajectory_curves[k], v);
+                std::vector<glm::vec3> frame_trajectory_curve_zero = tinynurbs::curveTNBFrame<float>(trajectory_curves[k], 0);
 
-
-                    glm::vec3 tmp1 = tinynurbs::surfaceNormal(surfaces[k], u, v);
-
-                    double length = sqrt(pow(tmp1.x, 2) + pow(tmp1.y, 2) + pow(tmp1.z, 2)); 
-
-                    tmp1.x = tmp1.x / length;
-                    tmp1.y = tmp1.y / length;
-                    tmp1.z = tmp1.z / length;
                 
-                    glm::vec3 tmp2; 
+                glm::vec3 T0 = frame_trajectory_curve_zero[0];  
+                glm::vec3 N0 = frame_trajectory_curve_zero[1]; 
+                glm::vec3 B0 = frame_trajectory_curve_zero[2];  
 
-                    double len = 0.2; 
-                    tmp2.x = tmp.x - tmp1.x * len;
-                    tmp2.y = tmp.y - tmp1.y * len;
-                    tmp2.z = tmp.z - tmp1.z * len;
+                glm::vec3 T1 = frame_trajectory_curve[0];  
+                glm::vec3 N1 = frame_trajectory_curve[1];  
+                glm::vec3 B1 = frame_trajectory_curve[2];  
 
-                    Vertices[x][y] = tmp;
-                    OffsetVertex[x][y] = tmp2;
-                    Normal[x][y] = tmp1;
-                    v += delta;
-                }
-                u += delta;
+
+                glm::mat3x3 frame_zero(T0, N0, B0);  
+                glm::mat3x3 frame_v(T1, N1, B1);     
+
+                glm::mat3x3 rotation_matrix = frame_v * transpose(frame_zero);
+
+                glm::mat3x3 scale_matrix = glm::mat3x3(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+                glm::mat3x3 rot_scale = rotation_matrix * scale_matrix;
+
+                glm::vec3 tmp =  rot_scale * (tmp_contour_curve) + tmp_trajectory_curve;
+
+
+                glm::vec3 tmp1 = tinynurbs::surfaceNormal(surfaces[k], u, v);
+
+                double length = sqrt(pow(tmp1.x, 2) + pow(tmp1.y, 2) + pow(tmp1.z, 2)); 
+
+                tmp1.x = tmp1.x / length;
+                tmp1.y = tmp1.y / length;
+                tmp1.z = tmp1.z / length;
+            
+                glm::vec3 tmp2; 
+
+                double len = 0.2; 
+                tmp2.x = tmp.x - tmp1.x * len;
+                tmp2.y = tmp.y - tmp1.y * len;
+                tmp2.z = tmp.z - tmp1.z * len;
+
+                Vertices[x][y] = tmp;
+                OffsetVertex[x][y] = tmp2;
+                Normal[x][y] = tmp1;
+                v += delta;
             }
-            this->surfaceRender[k].Initial(lightvertexShaderPath, fragmentShaderPath, Vertices, Normal);
-
-            this->meshRender[k].Initial(vertexShaderPath, whiteFragmentShaderPath, Vertices);
-    
-            vector<vector<glm::vec3>> MeshVertex;
-
-            MeshVertex.resize(surfaces[k].control_points.rows());
-
-            for (int i = 0; i < surfaces[k].control_points.rows(); i++)
-            {
-                MeshVertex[i].resize(surfaces[k].control_points.cols());
-                for (int j = 0; j < surfaces[k].control_points.cols(); j++) {
-                    MeshVertex[i][j] = surfaces[k].control_points[surfaces[k].control_points.cols() * i + j];
-                }
-
-            }
-            this->surfaceControlRender[k].Initial(vertexShaderPath, whiteFragmentShaderPath, MeshVertex);
+            u += delta;
         }
+        this->surfaceRender[k].Initial(lightvertexShaderPath, fragmentShaderPath, Vertices, Normal);
+
+        this->meshRender[k].Initial(vertexShaderPath, whiteFragmentShaderPath, Vertices);
+ 
+        vector<vector<glm::vec3>> MeshVertex;
+
+        MeshVertex.resize(surfaces[k].control_points.rows());
+
+        for (int i = 0; i < surfaces[k].control_points.rows(); i++)
+        {
+            MeshVertex[i].resize(surfaces[k].control_points.cols());
+            for (int j = 0; j < surfaces[k].control_points.cols(); j++) {
+                MeshVertex[i][j] = surfaces[k].control_points[surfaces[k].control_points.cols() * i + j];
+
+            }
+
+        }
+        this->surfaceControlRender[k].Initial(vertexShaderPath, whiteFragmentShaderPath, MeshVertex);
+        }
+
     }
-    
 
 
     this->contourCurveDisplayer.resize(contour_curves.size());
