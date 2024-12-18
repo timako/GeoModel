@@ -2,6 +2,7 @@
 #include "glm/ext.hpp"
 #include "../include/tinynurbs/tinynurbs.h"
 #include "../include/tinynurbs/util/util.h"
+#include "../include/tinynurbs/core/basis.h"
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -21,6 +22,39 @@ const char* fragmentShaderPath = "../shaders/fragmentShader.fs";
 //const char* imguiFontPath = "../imgui/misc/fonts/DroidSans.ttf";  //����·��
 
 const char* imguiFontPath = "../imgui/misc/fonts/DroidSans.ttf";  //����·��
+
+
+enum sweptMethod{
+    NMGRID, 
+    OFFSETCURVE,
+    SKIN
+}; 
+
+glm::mat4 convertToHomogeneous(const glm::mat3x3& rotation_matrix) {
+    // Create a 4x4 matrix
+    glm::mat4 homogeneous_matrix = glm::mat4(1.0f); // Initialize as identity matrix
+
+    // Set the upper-left 3x3 block to the 3x3 rotation matrix
+    homogeneous_matrix[0][0] = rotation_matrix[0][0];
+    homogeneous_matrix[0][1] = rotation_matrix[0][1];
+    homogeneous_matrix[0][2] = rotation_matrix[0][2];
+    
+    homogeneous_matrix[1][0] = rotation_matrix[1][0];
+    homogeneous_matrix[1][1] = rotation_matrix[1][1];
+    homogeneous_matrix[1][2] = rotation_matrix[1][2];
+    
+    homogeneous_matrix[2][0] = rotation_matrix[2][0];
+    homogeneous_matrix[2][1] = rotation_matrix[2][1];
+    homogeneous_matrix[2][2] = rotation_matrix[2][2];
+
+    // The bottom row is already [0, 0, 0, 1], which is the standard for rotation matrices
+    homogeneous_matrix[3][0] = 0.0f;
+    homogeneous_matrix[3][1] = 0.0f;
+    homogeneous_matrix[3][2] = 0.0f;
+    homogeneous_matrix[3][3] = 1.0f;
+
+    return homogeneous_matrix;
+}
 
 GLProgram::GLProgram() :
     deltaTime(0.0f), prevTime(0.0f) {
@@ -129,6 +163,28 @@ void GLProgram::DisplayingVec(const vector<glm::vec3>& Vector, const vector<glm:
     Render.Draw(camera, modelMatrix, lightPos, windowWidth, windowHeight);
 }
 
+void insert_knots(vector<float>& knots, int m) {
+    // Loop to insert 'm' knots
+    for (int i = 0; i < m; ++i) {
+        // Step 1: Find the longest span (difference between consecutive knots)
+        double longest_span = 0.0;
+        int longest_span_index = -1;
+        
+        for (int j = 1; j < knots.size(); ++j) {
+            double span = knots[j] - knots[j - 1];
+            if (span > longest_span) {
+                longest_span = span;
+                longest_span_index = j;
+            }
+        }
+
+        // Step 2: Calculate the midpoint of the longest span
+        double midpoint = (knots[longest_span_index - 1] + knots[longest_span_index]) / 2.0;
+
+        // Step 3: Insert the midpoint into the list of knots
+        knots.insert(knots.begin() + longest_span_index, midpoint);
+    }
+}
 
 void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curves,
     const vector<tinynurbs::RationalCurve<float>>& trajectory_curves,
@@ -200,7 +256,8 @@ void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curv
     for (int k = 0; k < this->surfaceRender.size(); k++)
     {
         /*Original method */
-        {
+        /*n * m grid of points*/
+        
         float u, v, delta;
         u = 0;
         v = 0;
@@ -214,18 +271,54 @@ void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curv
         Vertices.resize(numX);
         OffsetVertex.resize(numX);
         delta = 1.0 / (numX - 1);
-        for (int x = 0; x < numX; x++) {
-            v = 0;
-            Vertices[x].resize(numY);
-            OffsetVertex[x].resize(numY);
-            Normal[x].resize(numY);
-            for (int y = 0; y < numY; y++) {
-                // add vertex
-                // glm::vec3 tmp = tinynurbs::surfacePoint(surfaces[k], u, v);
+        // std::vector<glm::vec3> Q = contour_curves[k].control_points; 
+        std::vector<std::vector<glm::vec3>> Q; 
+        tinynurbs::RationalSurface<float> sweep_surf_skin; 
+        if (this->sweptSurfaceMethod == sweptMethod::SKIN){
+        /* T: trajectory curve
+            * C: section curve
+            * Bv: BiNormal
+            * sv: scale
+            * q: v-deree
+            * K: num of profile curve
+            */
+            uint q = trajectory_curves[k].degree; 
+            uint ktv = trajectory_curves[k].knots.size(); 
+            uint K = 7; 
+            uint nsect = K + 1; 
+            Q.resize(nsect); 
 
-                glm::vec3 tmp_contour_curve = tinynurbs::curvePoint(contour_curves[k], u);
-                glm::vec3 tmp_trajectory_curve = tinynurbs::curvePoint(trajectory_curves[k], v);
-                std::vector<glm::vec3> frame_trajectory_curve = tinynurbs::curveTNBFrame<float>(trajectory_curves[k], v);
+            for(int i = 0; i < nsect; i++){
+                Q[i].resize(contour_curves[k].control_points.size());
+            }
+
+            vector<float> V = trajectory_curves[k].knots; 
+            if (ktv <= nsect + q){
+                // Must refine T(v)'s knot vector
+                uint m = nsect + q - ktv + 1;
+                insert_knots(V, m); 
+            }
+            else{
+                if(ktv > nsect + q + 1)
+                    nsect = ktv - q - 1; 
+            }
+            vector<float> v_bar;
+            v_bar.resize(nsect); 
+            v_bar[0] = 0.f, v_bar[nsect-1] = 1.f; 
+            for(int k = 1; k < nsect - 1; k++){
+                for(int j = 1; j <= q; j++){
+                    v_bar[k] += V[k + j]; 
+                }
+                v_bar[k] /= q; 
+            }
+            
+            std::vector<float> w = contour_curves[k].weights;
+            for(int k = 0; k < V.size(); k++){
+                printf(" V[%d] = %f \t", k, V[k]);
+            }
+            
+            for(int kk = 0; kk < nsect; kk++){
+                std::vector<glm::vec3> frame_trajectory_curve = tinynurbs::curveTNBFrame<float>(trajectory_curves[k], V[kk]);
                 std::vector<glm::vec3> frame_trajectory_curve_zero = tinynurbs::curveTNBFrame<float>(trajectory_curves[k], 0);
 
                 
@@ -243,11 +336,130 @@ void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curv
 
                 glm::mat3x3 rotation_matrix = frame_v * transpose(frame_zero);
 
-                glm::mat3x3 scale_matrix = glm::mat3x3(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
-                glm::mat3x3 rot_scale = rotation_matrix * scale_matrix;
+                std::vector<glm::vec<3, float>> ctl_pts = contour_curves[k].control_points; 
+                uint ctl_pts_size = ctl_pts.size(); 
 
-                glm::vec3 tmp =  rot_scale * (tmp_contour_curve) + tmp_trajectory_curve;
+                uint degree = contour_curves[k].degree; 
+                std::vector<float> knots = contour_curves[k].knots; 
+                std::vector<float> weights = contour_curves[k].weights;
 
+                int span = tinynurbs::findSpan(degree, knots, u);
+                glm::vec<4, float> pointw(float(0)); 
+                typedef glm::vec<4, float> tvecnp1;
+                std::vector<tvecnp1> Cw;
+                Cw.reserve(ctl_pts_size);
+
+                for(size_t i = 0; i < ctl_pts_size; i++) {
+                    Cw.push_back(tvecnp1(tinynurbs::util::cartesianToHomogenous(contour_curves[k].control_points[i], contour_curves[k].weights[i])));
+                }
+                glm::mat4x4 rot = convertToHomogeneous(rotation_matrix); 
+                for(size_t i = 0; i < ctl_pts_size; i++) {
+                    Cw[i] = rot * Cw[i]; 
+                    Q[kk][i] = tinynurbs::util::homogenousToCartesian(Cw[i]); 
+                    // glm::vec<3, float> point = tinynurbs::util::homogenousToCartesian(pointw) * float(degree);
+                }
+            }
+
+            std::vector<glm::vec3> Q_1d_array; 
+            for(int i = 0; i < nsect; i++){
+                for(int j = 0; j < contour_curves[k].control_points.size(); j++){
+                    Q_1d_array.push_back(Q[i][j]);
+                }
+            }
+            
+            sweep_surf_skin = tinynurbs::RationalSurface<float>(
+            2, 2, 
+            { 0, 0, 0, 0.15, 0.3, 0.4, 0.6, 0.7, 0.85, 1, 1, 1, },
+            { 0, 0, 0, 0.161836, 0.259023, 0.36176, 0.449662, 0.528558, 0.600314, 0.667673, 0.762996, 1, 1, 1, },
+            // row, col, data of array2
+            { nsect,contour_curves[k].control_points.size(), Q_1d_array},
+            { nsect,contour_curves[k].control_points.size(), 1 });
+        }
+
+        
+        for (int x = 0; x < numX; x++) {
+            v = 0;
+            Vertices[x].resize(numY);
+            OffsetVertex[x].resize(numY);
+            Normal[x].resize(numY);
+            for (int y = 0; y < numY; y++) {
+                // add vertex
+                // glm::vec3 tmp = tinynurbs::surfacePoint(surfaces[k], u, v);
+                glm::vec3 tmp; 
+                if (this->sweptSurfaceMethod == sweptMethod::NMGRID){
+                    glm::vec3 tmp_contour_curve = tinynurbs::curvePoint(contour_curves[k], u);
+                    glm::vec3 tmp_trajectory_curve = tinynurbs::curvePoint(trajectory_curves[k], v);
+                    std::vector<glm::vec3> frame_trajectory_curve = tinynurbs::curveTNBFrame<float>(trajectory_curves[k], v);
+                    std::vector<glm::vec3> frame_trajectory_curve_zero = tinynurbs::curveTNBFrame<float>(trajectory_curves[k], 0);
+
+                    
+                    glm::vec3 T0 = frame_trajectory_curve_zero[0];  
+                    glm::vec3 N0 = frame_trajectory_curve_zero[1]; 
+                    glm::vec3 B0 = frame_trajectory_curve_zero[2];  
+
+                    glm::vec3 T1 = frame_trajectory_curve[0];  
+                    glm::vec3 N1 = frame_trajectory_curve[1];  
+                    glm::vec3 B1 = frame_trajectory_curve[2];  
+
+
+                    glm::mat3x3 frame_zero(T0, N0, B0);  
+                    glm::mat3x3 frame_v(T1, N1, B1);     
+
+                    glm::mat3x3 rotation_matrix = frame_v * transpose(frame_zero);
+
+                    glm::mat3x3 scale_matrix = glm::mat3x3(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+                    glm::mat3x3 rot_scale = rotation_matrix * scale_matrix;
+
+                    tmp =  rot_scale * (tmp_contour_curve) + tmp_trajectory_curve;
+                }
+                else if (this->sweptSurfaceMethod == sweptMethod::OFFSETCURVE){
+                    std::vector<glm::vec3> frame_trajectory_curve = tinynurbs::curveTNBFrame<float>(trajectory_curves[k], v);
+                    std::vector<glm::vec3> frame_trajectory_curve_zero = tinynurbs::curveTNBFrame<float>(trajectory_curves[k], 0);
+
+                    
+                    glm::vec3 T0 = frame_trajectory_curve_zero[0];  
+                    glm::vec3 N0 = frame_trajectory_curve_zero[1]; 
+                    glm::vec3 B0 = frame_trajectory_curve_zero[2];  
+
+                    glm::vec3 T1 = frame_trajectory_curve[0];  
+                    glm::vec3 N1 = frame_trajectory_curve[1];  
+                    glm::vec3 B1 = frame_trajectory_curve[2];  
+
+
+                    glm::mat3x3 frame_zero(T0, N0, B0);  
+                    glm::mat3x3 frame_v(T1, N1, B1);     
+
+                    glm::mat3x3 rotation_matrix = frame_v * transpose(frame_zero);
+
+                    glm::vec3 tmp_trajectory_curve = tinynurbs::curvePoint(trajectory_curves[k], v);
+                    std::vector<glm::vec<3, float>> ctl_pts = contour_curves[k].control_points; 
+                    uint ctl_pts_size = ctl_pts.size(); 
+
+                    uint degree = contour_curves[k].degree; 
+                    std::vector<float> knots = contour_curves[k].knots; 
+                    std::vector<float> weights = contour_curves[k].weights;
+
+                    int span = tinynurbs::findSpan(degree, knots, u);
+                    glm::vec<4, float> pointw(float(0)); 
+                    typedef glm::vec<4, float> tvecnp1;
+                    std::vector<tvecnp1> Cw;
+                    Cw.reserve(ctl_pts_size);
+                    for(size_t i = 0; i < ctl_pts_size; i++) {
+                        Cw.push_back(tvecnp1(tinynurbs::util::cartesianToHomogenous(contour_curves[k].control_points[i], contour_curves[k].weights[i])));
+                    }
+                    for (unsigned int i = 0; i <= degree; i++){
+                        glm::vec<4, float> C_i = Cw[span - degree + i]; 
+                        glm::mat4x4 rot = convertToHomogeneous(rotation_matrix); 
+                        glm::vec<4, float> alpha_i_v = glm::vec4(tmp_trajectory_curve, 1.0) + rot * C_i; 
+                        std::vector<float> N = tinynurbs::bsplineBasis(degree, span, knots, u);
+                        pointw += static_cast<float>(N[i]) * alpha_i_v;
+                    }
+                    glm::vec<3, float> point = tinynurbs::util::homogenousToCartesian(pointw) * float(degree);
+                    tmp = point; 
+                }
+                else if(this->sweptSurfaceMethod == sweptMethod::SKIN){
+                    tmp = tinynurbs::surfacePoint(sweep_surf_skin, u, v); 
+                }
 
                 glm::vec3 tmp1 = tinynurbs::surfaceNormal(surfaces[k], u, v);
 
@@ -289,7 +501,7 @@ void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curv
 
         }
         this->surfaceControlRender[k].Initial(vertexShaderPath, whiteFragmentShaderPath, MeshVertex);
-        }
+        
 
     }
 

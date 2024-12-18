@@ -68,6 +68,7 @@ class GLProgram {
 
         // input
         bool enableControl = true; //��������ƶ�
+        uint sweptSurfaceMethod = 1u;
 
         static int windowWidth, windowHeight;
         static Camera camera;
