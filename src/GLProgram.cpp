@@ -284,7 +284,7 @@ void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curv
             */
             uint q = trajectory_curves[k].degree; 
             uint ktv = trajectory_curves[k].knots.size(); 
-            uint K = 7; 
+            uint K = 10; 
             uint nsect = K + 1; 
             Q.resize(nsect); 
 
@@ -304,6 +304,7 @@ void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curv
             }
             vector<float> v_bar;
             v_bar.resize(nsect); 
+            std::fill(v_bar.begin(), v_bar.end(), 0.f);
             v_bar[0] = 0.f, v_bar[nsect-1] = 1.f; 
             for(int k = 1; k < nsect - 1; k++){
                 for(int j = 1; j <= q; j++){
@@ -311,16 +312,14 @@ void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curv
                 }
                 v_bar[k] /= q; 
             }
-            
+ 
             std::vector<float> w = contour_curves[k].weights;
-            for(int k = 0; k < V.size(); k++){
-                printf(" V[%d] = %f \t", k, V[k]);
-            }
-            
-            for(int kk = 0; kk < nsect; kk++){
-                std::vector<glm::vec3> frame_trajectory_curve = tinynurbs::curveTNBFrame<float>(trajectory_curves[k], V[kk]);
-                std::vector<glm::vec3> frame_trajectory_curve_zero = tinynurbs::curveTNBFrame<float>(trajectory_curves[k], 0);
 
+            for(int kk = 0; kk < nsect; kk++){
+                std::vector<glm::vec3> frame_trajectory_curve = tinynurbs::curveTNBFrame<float>(trajectory_curves[k], v_bar[kk]);
+                std::vector<glm::vec3> frame_trajectory_curve_zero = tinynurbs::curveTNBFrame<float>(trajectory_curves[k], 0);
+                glm::vec3 tmp_trajectory_curve = tinynurbs::curvePoint(trajectory_curves[k], v_bar[kk]);
+                // printf("kk = %d, tmp_trajectory_curve: (%f,%f,%f)\n", kk, tmp_trajectory_curve.x, tmp_trajectory_curve.y, tmp_trajectory_curve.z);
                 
                 glm::vec3 T0 = frame_trajectory_curve_zero[0];  
                 glm::vec3 N0 = frame_trajectory_curve_zero[1]; 
@@ -352,28 +351,71 @@ void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curv
                 for(size_t i = 0; i < ctl_pts_size; i++) {
                     Cw.push_back(tvecnp1(tinynurbs::util::cartesianToHomogenous(contour_curves[k].control_points[i], contour_curves[k].weights[i])));
                 }
+
+                
+                
                 glm::mat4x4 rot = convertToHomogeneous(rotation_matrix); 
+                // rot[3][0] =  tmp_trajectory_curve.x; 
+                // rot[3][1] =  tmp_trajectory_curve.y;
+                // rot[3][2] =  tmp_trajectory_curve.z;
+                // debug  rot
+                
+
                 for(size_t i = 0; i < ctl_pts_size; i++) {
                     Cw[i] = rot * Cw[i]; 
-                    Q[kk][i] = tinynurbs::util::homogenousToCartesian(Cw[i]); 
+                    // printf("(%f,%f,%f,%f), \n", Cw[i].x, Cw[i].y, Cw[i].z, Cw[i].w);
+                    Q[kk][i] = tinynurbs::util::homogenousToCartesian(Cw[i]) + tmp_trajectory_curve; 
+                    // printf("(%f,%f,%f), \n", Q[kk][i].x, Q[kk][i].y, Q[kk][i].z);
+
                     // glm::vec<3, float> point = tinynurbs::util::homogenousToCartesian(pointw) * float(degree);
                 }
+                // printf("\n"); 
             }
+            for(int kk = 0; kk < nsect; kk++){
+                for(size_t i = 0; i < contour_curves[k].control_points.size(); i++){
+                    //  printf("(%f,%f,%f), \n", Q[kk][i].x, Q[kk][i].y, Q[kk][i].z);
+                }
+            }
+            // printf("+++++++++++++++++++\n");
+            
+            
 
             std::vector<glm::vec3> Q_1d_array; 
-            for(int i = 0; i < nsect; i++){
-                for(int j = 0; j < contour_curves[k].control_points.size(); j++){
-                    Q_1d_array.push_back(Q[i][j]);
+            Q_1d_array.resize(contour_curves[k].control_points.size() * nsect);
+            for (size_t i = 0; i < contour_curves[k].control_points.size(); i++) {
+                for (int kk = 0; kk < nsect; kk++) {
+                    // Flatten in a row-major manner: first vary kk, then i
+                    Q_1d_array[i * nsect + kk] = Q[kk][i];
+                    
+                }
+            }
+            for(int i = 0; i < Q_1d_array.size(); i++){
+                printf("(%f,%f,%f), \n", Q_1d_array[i].x, Q_1d_array[i].y, Q_1d_array[i].z);
+                if(i % nsect == nsect - 1){
+                    printf("\n");
                 }
             }
             
+            // RationalSurface(unsigned int degree_u, unsigned int degree_v, const std::vector<T> &knots_u,
+            //     const std::vector<T> &knots_v, const array2<glm::vec<3, T>> &control_points,
+            //     const array2<T> &weights)
+            // : degree_u(degree_u), degree_v(degree_v), knots_u(knots_u), knots_v(knots_v),
+            //   control_points(control_points), weights(weights)
+
+            // sweep_surf_skin = sweep_surf;
             sweep_surf_skin = tinynurbs::RationalSurface<float>(
             2, 2, 
             { 0, 0, 0, 0.15, 0.3, 0.4, 0.6, 0.7, 0.85, 1, 1, 1, },
-            { 0, 0, 0, 0.161836, 0.259023, 0.36176, 0.449662, 0.528558, 0.600314, 0.667673, 0.762996, 1, 1, 1, },
+            { 0, 0, 0, 0.161836, 0.259023, 0.36176, 0.449662, 0.528558, 0.600314, 0.667673, 0.762996, 1, 1, 1, } ,
             // row, col, data of array2
-            { nsect,contour_curves[k].control_points.size(), Q_1d_array},
-            { nsect,contour_curves[k].control_points.size(), 1 });
+            { contour_curves[k].control_points.size(),nsect, Q_1d_array},
+            { contour_curves[k].control_points.size(),nsect, 1 });
+
+            std::cout << "V.size() = " << V.size() << "\n";
+            std::cout << "nsect = " << nsect << "\n";
+            std::cout << "Q_1d_array.size() = " << Q_1d_array.size() << "\n";
+            std::cout << "contour_curves[k].control_points.size() = " << contour_curves[k].control_points.size() << "\n";
+            // exit(0); 
         }
 
         
@@ -446,7 +488,9 @@ void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curv
                     Cw.reserve(ctl_pts_size);
                     for(size_t i = 0; i < ctl_pts_size; i++) {
                         Cw.push_back(tvecnp1(tinynurbs::util::cartesianToHomogenous(contour_curves[k].control_points[i], contour_curves[k].weights[i])));
+                        // printf("(%f,%f,%f), \n", Cw[i].x, Cw[i].y, Cw[i].z);
                     }
+                    
                     for (unsigned int i = 0; i <= degree; i++){
                         glm::vec<4, float> C_i = Cw[span - degree + i]; 
                         glm::mat4x4 rot = convertToHomogeneous(rotation_matrix); 
@@ -461,7 +505,7 @@ void GLProgram::init(const vector<tinynurbs::RationalCurve<float>>& contour_curv
                     tmp = tinynurbs::surfacePoint(sweep_surf_skin, u, v); 
                 }
 
-                glm::vec3 tmp1 = tinynurbs::surfaceNormal(surfaces[k], u, v);
+                glm::vec3 tmp1 = tinynurbs::surfaceNormal(sweep_surf_skin, u, v);
 
                 double length = sqrt(pow(tmp1.x, 2) + pow(tmp1.y, 2) + pow(tmp1.z, 2)); 
 

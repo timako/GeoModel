@@ -54,6 +54,12 @@
         "cwctype": "cpp",
         "deque": "cpp",
         "unordered_map": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "*.ipp": "cpp",
+        "bitset": "cpp",
+        "hash_map": "cpp",
+        "ranges": "cpp",
+        "span": "cpp",
+        "valarray": "cpp"
     }
 }
